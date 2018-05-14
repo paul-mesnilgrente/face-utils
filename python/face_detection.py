@@ -6,7 +6,7 @@ import cv2
 
 class face_detector:
     def __init__(self, weights, model):
-        self.network = cv2.dnn.readNetFromCaffe(args["prototxt"], args["model"])
+        self.network = cv2.dnn.readNetFromCaffe(weights, model)
 
     def detect(self, image, min_confidence=0.5):
         (h, w) = image.shape[:2]
@@ -43,16 +43,17 @@ class face_detector:
 
 
     def draw(self, image, boxes, confidences, min_confidence=0.5):
+        res = image.copy()
         for i, (startX, startY, endX, endY) in enumerate(boxes):
             # draw the bounding box of the face along with the associated
             # probability
             text = "{:.2f}%".format(confidences[i] * 100)
             y = startY - 10 if startY - 10 > 10 else startY + 10
-            cv2.rectangle(image, (startX, startY), (endX, endY),
+            cv2.rectangle(res, (startX, startY), (endX, endY),
                           (0, 0, 255), 2)
-            cv2.putText(image, text, (startX, y),
+            cv2.putText(res, text, (startX, y),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 0, 255), 2)
-        return image
+        return res
 
 
 if __name__ == '__main__':
