@@ -93,7 +93,6 @@ if __name__ == '__main__':
         default="../models/shape_predictor_68_face_landmarks.dat",
         help="path to facial landmark predictor")
     args = vars(ap.parse_args())
-    print(args)
 
     # initialize the detectors
     detector = face_detection.face_detector(args["prototxt"], args["model"])

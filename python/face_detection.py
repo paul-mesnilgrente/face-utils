@@ -47,6 +47,8 @@ class face_detector:
         for i, (startX, startY, endX, endY) in enumerate(boxes):
             # draw the bounding box of the face along with the associated
             # probability
+            if confidences[i] < min_confidence:
+                continue
             text = "{:.2f}%".format(confidences[i] * 100)
             y = startY - 10 if startY - 10 > 10 else startY + 10
             cv2.rectangle(res, (startX, startY), (endX, endY),
@@ -59,9 +61,11 @@ class face_detector:
 if __name__ == '__main__':
     # construct the argument parse and parse the arguments
     ap = argparse.ArgumentParser()
-    ap.add_argument("-p", "--prototxt", required=True,
+    ap.add_argument("-p", "--prototxt",
+        default="../models/deploy.prototxt",
         help="path to Caffe 'deploy' prototxt file")
-    ap.add_argument("-m", "--model", required=True,
+    ap.add_argument("-m", "--model",
+        default="../models/res10_300x300_ssd_iter_140000_fp16.caffemodel",
         help="path to Caffe pre-trained model")
     ap.add_argument("-c", "--confidence", type=float, default=0.5,
         help="minimum probability to filter weak detections")
