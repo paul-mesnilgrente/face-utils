@@ -2,8 +2,8 @@
 
 int main(int argc, char** argv) {
     // initialize the face detector
-    std::string weights = "../../models/deploy.prototxt";
-    std::string model = "../../models/res10_300x300_ssd_iter_140000_fp16.caffemodel";
+    std::string weights = "../models/deploy.prototxt";
+    std::string model = "../models/res10_300x300_ssd_iter_140000_fp16.caffemodel";
     face_detector detector(weights, model);
     std::vector<detected_face> faces;
 
