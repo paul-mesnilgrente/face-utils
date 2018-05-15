@@ -1,11 +1,11 @@
 # import the necessary packages
 from facial_landmark_detection import FACIAL_LANDMARKS_IDXS
-from facial_landmark_detection import shape_to_np
 import facial_landmark_detection
 import face_detection
 import argparse
 import numpy as np
 import cv2
+
 
 class face_aligner:
     def __init__(self, desiredLeftEye=(0.35, 0.35),
@@ -21,11 +21,9 @@ class face_aligner:
         if self.desiredFaceHeight is None:
             self.desiredFaceHeight = self.desiredFaceWidth
 
-    def align(self, image, shapes, boxes):
+    def align(self, image, shapes):
         outputs = []
         for i, shape in enumerate(shapes):
-            print(shape)
-            rect = boxes[i]
 
             # extract the left and right eye (x, y)-coordinates
             (lStart, lEnd) = FACIAL_LANDMARKS_IDXS["left_eye"]
@@ -58,7 +56,7 @@ class face_aligner:
             # compute center (x, y)-coordinates (i.e., the median point)
             # between the two eyes in the input image
             eyesCenter = ((leftEyeCenter[0] + rightEyeCenter[0]) // 2,
-                (leftEyeCenter[1] + rightEyeCenter[1]) // 2)
+                          (leftEyeCenter[1] + rightEyeCenter[1]) // 2)
 
             # grab the rotation matrix for rotating and scaling the face
             M = cv2.getRotationMatrix2D(eyesCenter, angle, scale)
@@ -72,29 +70,32 @@ class face_aligner:
             # apply the affine transformation
             (w, h) = (self.desiredFaceWidth, self.desiredFaceHeight)
             output = cv2.warpAffine(image, M, (w, h),
-                flags=cv2.INTER_CUBIC)
+                                    flags=cv2.INTER_CUBIC)
             outputs.append(output)
 
         # return the aligned face
         return outputs
 
+
 if __name__ == '__main__':
     # construct the argument parser and parse the arguments
+    default_model = "../models/res10_300x300_ssd_iter_140000_fp16.caffemodel"
     ap = argparse.ArgumentParser()
     ap.add_argument("-p", "--prototxt",
-        default="../models/deploy.prototxt",
-        help="path to facial landmark predictor")
+                    default="../models/deploy.prototxt",
+                    help="path to facial landmark predictor")
     ap.add_argument("-m", "--model",
-        default="../models/res10_300x300_ssd_iter_140000_fp16.caffemodel",
-        help="path to facial landmark predictor")
+                    default=default_model,
+                    help="path to facial landmark predictor")
     ap.add_argument("-s", "--shape-predictor",
-        default="../models/shape_predictor_68_face_landmarks.dat",
-        help="path to facial landmark predictor")
+                    default="../models/shape_predictor_68_face_landmarks.dat",
+                    help="path to facial landmark predictor")
     args = vars(ap.parse_args())
 
     # initialize the detectors
     detector = face_detection.face_detector(args["prototxt"], args["model"])
-    predictor = facial_landmark_detection.facial_landmark_detector(args["shape_predictor"])
+    predictor = facial_landmark_detection.facial_landmark_detector(
+                    args["shape_predictor"])
     aligner = face_aligner()
 
     cap = cv2.VideoCapture(0)
@@ -103,7 +104,7 @@ if __name__ == '__main__':
         ret, frame = cap.read()
         (boxes, confidences) = detector.detect(frame)
         shapes = predictor.predict(frame, boxes)
-        outputs = aligner.align(frame, shapes, boxes)
+        outputs = aligner.align(frame, shapes)
 
         for i, image in enumerate(outputs):
             cv2.imshow("Face {}".format(i), image)

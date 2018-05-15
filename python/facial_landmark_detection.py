@@ -19,6 +19,7 @@ FACIAL_LANDMARKS_IDXS = OrderedDict([
     ("jaw", (0, 17))
 ])
 
+
 def rect_to_bb(rect):
     # take a bounding predicted by dlib and convert it
     # to the format (x, y, w, h) as we would normally do
@@ -44,6 +45,7 @@ def shape_to_np(shape, dtype="int"):
     # return the list of (x, y)-coordinates
     return coords
 
+
 class facial_landmark_detector:
     def __init__(self, model):
         self.predictor = dlib.shape_predictor(model)
@@ -55,7 +57,8 @@ class facial_landmark_detector:
         (h1, w1) = gray.shape[:2]
 
         shapes = []
-        boxes = np.array(boxes * np.array([w1, h1, w1, h1]) / np.array([w0, h0, w0, h0]), dtype=int)
+        boxes = np.array(boxes * np.array([w1, h1, w1, h1]) /
+                         np.array([w0, h0, w0, h0]), dtype=int)
         # loop over the face detections
         for (i, rect) in enumerate(boxes):
             # convert my rect in dlib rectangle
@@ -65,7 +68,8 @@ class facial_landmark_detector:
             # array
             shape = self.predictor(gray, rect)
             shape = shape_to_np(shape)
-            shape = np.array(shape * np.array([w0, h0]) / np.array([w1, h1]), dtype=int)
+            shape = np.array(shape * np.array([w0, h0]) / np.array([w1, h1]),
+                             dtype=int)
             shapes.append(shape)
 
         return shapes
@@ -83,15 +87,16 @@ class facial_landmark_detector:
 if __name__ == '__main__':
     # construct the argument parser and parse the arguments
     ap = argparse.ArgumentParser()
+    default_model = "../models/res10_300x300_ssd_iter_140000_fp16.caffemodel"
     ap.add_argument("-p", "--prototxt",
-        default="../models/deploy.prototxt",
-        help="path to facial landmark predictor")
+                    default="../models/deploy.prototxt",
+                    help="path to facial landmark predictor")
     ap.add_argument("-m", "--model",
-        default="../models/res10_300x300_ssd_iter_140000_fp16.caffemodel",
-        help="path to facial landmark predictor")
+                    default=default_model,
+                    help="path to facial landmark predictor")
     ap.add_argument("-s", "--shape-predictor",
-        default="../models/shape_predictor_68_face_landmarks.dat",
-        help="path to facial landmark predictor")
+                    default="../models/shape_predictor_68_face_landmarks.dat",
+                    help="path to facial landmark predictor")
     args = vars(ap.parse_args())
 
     # initialize the detectors

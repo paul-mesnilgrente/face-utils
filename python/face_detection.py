@@ -1,8 +1,8 @@
 import numpy as np
 import argparse
 import imutils
-import time
 import cv2
+
 
 class face_detector:
     def __init__(self, weights, model):
@@ -14,7 +14,7 @@ class face_detector:
         # grab the image dimensions and convert it to a blob
         blob = cv2.dnn.blobFromImage(cv2.resize(image, (300, 300)), 1.0,
                                      (300, 300), (104.0, 177.0, 123.0))
-        
+
         # pass the blob through the network and obtain the detections and
         # predictions
         self.network.setInput(blob)
@@ -41,7 +41,6 @@ class face_detector:
             boxes.append((startX, startY, endX, endY))
         return (boxes, confidences)
 
-
     def draw(self, image, boxes, confidences, min_confidence=0.5):
         res = image.copy()
         for i, (startX, startY, endX, endY) in enumerate(boxes):
@@ -61,14 +60,15 @@ class face_detector:
 if __name__ == '__main__':
     # construct the argument parse and parse the arguments
     ap = argparse.ArgumentParser()
+    default_model = "../models/res10_300x300_ssd_iter_140000_fp16.caffemodel"
     ap.add_argument("-p", "--prototxt",
-        default="../models/deploy.prototxt",
-        help="path to Caffe 'deploy' prototxt file")
+                    default="../models/deploy.prototxt",
+                    help="path to Caffe 'deploy' prototxt file")
     ap.add_argument("-m", "--model",
-        default="../models/res10_300x300_ssd_iter_140000_fp16.caffemodel",
-        help="path to Caffe pre-trained model")
+                    default=default_model,
+                    help="path to Caffe pre-trained model")
     ap.add_argument("-c", "--confidence", type=float, default=0.5,
-        help="minimum probability to filter weak detections")
+                    help="minimum probability to filter weak detections")
     args = vars(ap.parse_args())
 
     detector = face_detector(args['prototxt'], args['model'])
