@@ -5,33 +5,33 @@ face_detector::face_detector(std::string weights, std::string model)
     network = cv::dnn::readNetFromCaffe(weights, model);
 }
 
-std::vector<detected_face> face_detector::post_process(cv::Mat & frame,
-                                                        const cv::Mat& outs)
+detected_faces face_detector::post_process(const cv::Mat& image,
+                                           const cv::Mat& outs,
+                                           float min_confidence)
 {
-    std::vector<detected_face> res;
-    int width = frame.cols, height = frame.rows;
+    detected_faces res;
+    res.faces_bounds = Eigen::MatrixXi::Constant(outs.total(), 4, 0);
+    res.confidences = Eigen::VectorXf::Constant(outs.total(), 0.f);
+    int width = image.cols, height = image.rows;
 
     // Network produces output blob with a shape 1x1xNx7 where N is a number of
-    // detections and an every detection is a vector of values
+    // detections and every detection is a vector of values
     // [batchId, classId, confidence, left, top, right, bottom]
-    float* data = (float*)outs.data;
+    float* data = (float*) outs.data;
     for (size_t i = 0; i < outs.total(); i += 7)
     {
-        detected_face current;
-        current.confidence = data[i + 2];
-        int left = (int)(data[i + 3] * width);
-        int top = (int)(data[i + 4] * height);
-        int right = (int)(data[i + 5] * width);
-        int bottom = (int)(data[i + 6] * height);
-        // int classId = (int)(data[i + 1]) - 1;  // Skip 0th background class id.
-        current.bounds = cv::Rect(left, top, right - left, bottom - top);
-        res.push_back(current);
+        res.confidences(i) = data[i + 2];
+        res.faces_bounds(i, 0) = (int) (data[i + 3] * width);
+        res.faces_bounds(i, 1) = (int) (data[i + 4] * height);
+        res.faces_bounds(i, 2) = (int) (data[i + 5] * width - res.faces_bounds(i, 0));
+        res.faces_bounds(i, 3) = (int) (data[i + 6] * height - res.faces_bounds(i, 1));
     }
     return res;
 }
 
-std::vector<detected_face> face_detector::detect(cv::Mat & image) {
-    std::vector<detected_face> res;
+detected_faces face_detector::detect(const cv::Mat& image, float min_confidence)
+{
+    detected_faces res;
     int height = image.rows, width = image.cols;
     cv::Mat resized;
     cv::resize(image, resized, cv::Size(300, 300));
@@ -42,22 +42,27 @@ std::vector<detected_face> face_detector::detect(cv::Mat & image) {
     network.setInput(blob);
     auto detections = network.forward();
     
-    return post_process(image, detections);
+    return post_process(image, detections, min_confidence);
 }
 
-cv::Mat face_detector::draw(cv::Mat & image,
-                            std::vector<detected_face> faces,
-                            float confidence) {
+cv::Mat face_detector::draw(const cv::Mat & image,
+                            const detected_faces & faces,
+                            const float min_confidence)
+{
     cv::Mat res(image);
     cv::Scalar color(0, 0, 255);
-    for (auto face : faces) {
-        if (face.confidence >= confidence) {
-            std::string text = std::to_string(face.confidence) + " %";
-            int y = face.bounds.y - 15 < 15 ? face.bounds.y + 15 : face.bounds.y - 10;
-            cv::putText(res, text, cv::Size(face.bounds.x, y), cv::FONT_HERSHEY_SIMPLEX,
+    for (int i = 0; i < faces.faces_bounds.rows(); i++) {
+        if (faces.confidences(i) >= min_confidence) {
+            std::string text = std::to_string(faces.confidences(i)) + " %";
+            int x = faces.faces_bounds(i, 0);
+            int y = faces.faces_bounds(i, 1);
+            int w = faces.faces_bounds(i, 2);
+            int h = faces.faces_bounds(i, 3);
+            int y_text = y - 15 < 15 ? y + 15 : y - 10;
+            cv::putText(res, text, cv::Point(x, y_text), cv::FONT_HERSHEY_SIMPLEX,
                         0.45, color, 2);
-            cv::rectangle(res, face.bounds, color, 2);
+            cv::rectangle(res, cv::Rect(x, y, w, h), color, 2);
         }
     }
-    return image;
+    return res;
 }

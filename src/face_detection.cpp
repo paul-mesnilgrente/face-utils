@@ -5,7 +5,7 @@ int main(int argc, char** argv) {
     std::string weights = "../models/deploy.prototxt";
     std::string model = "../models/res10_300x300_ssd_iter_140000_fp16.caffemodel";
     face_detector detector(weights, model);
-    std::vector<detected_face> faces;
+    detected_faces faces;
 
     // initialize the camera reading
     cv::VideoCapture cap(0);

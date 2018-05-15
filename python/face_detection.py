@@ -1,6 +1,5 @@
 import numpy as np
 import argparse
-import imutils
 import cv2
 
 
@@ -10,7 +9,6 @@ class face_detector:
 
     def detect(self, image, min_confidence=0.5):
         (h, w) = image.shape[:2]
-        image = imutils.resize(image, width=400)
         # grab the image dimensions and convert it to a blob
         blob = cv2.dnn.blobFromImage(cv2.resize(image, (300, 300)), 1.0,
                                      (300, 300), (104.0, 177.0, 123.0))

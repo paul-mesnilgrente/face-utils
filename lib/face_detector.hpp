@@ -1,26 +1,24 @@
 #ifndef FACE_DETECTION_HPP
 #define FACE_DETECTION_HPP
+#include "includes.ihh"
 
-#include <iostream>
-#include <opencv2/opencv.hpp>
-#include <opencv2/dnn/shape_utils.hpp>
-
-struct detected_face {
-    cv::Rect bounds;
-    double confidence;
+struct detected_faces {
+    Eigen::MatrixXi faces_bounds;
+    Eigen::VectorXf confidences;
 };
 
 struct face_detector {
     face_detector(std::string weights, std::string model);
 
-    std::vector<detected_face> detect(cv::Mat & image);
+    detected_faces detect(const cv::Mat& image, float min_confidence=.5f);
 
-    cv::Mat draw(cv::Mat & image,
-                 std::vector<detected_face> faces,
-                 float confidence);
+    cv::Mat draw(const cv::Mat& image,
+                 const detected_faces& faces,
+                 const float confidence);
 private:
-    std::vector<detected_face> post_process(cv::Mat & frame,
-                                            const cv::Mat& outs);
+    detected_faces post_process(const cv::Mat& frame,
+                                const cv::Mat& outs,
+                                float min_confidence);
     
     cv::dnn::Net network;
 };

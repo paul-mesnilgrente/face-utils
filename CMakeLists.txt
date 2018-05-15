@@ -1,8 +1,12 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.0)
 project(face-utils)
 
 find_package(OpenCV REQUIRED)
 find_package(dlib REQUIRED)
+find_package(Boost COMPONENTS program_options REQUIRED)
+find_package(Eigen3 3.3 REQUIRED)
+
+include_directories(${EIGEN3_INCLUDE_DIR})
 
 set(LIB_SOURCES lib/face_detector.cpp
                 lib/facial_landmark_detector.cpp
@@ -19,5 +23,6 @@ foreach(source_file ${APP_SOURCES})
     # Make sure YourLib is linked to each app
     target_link_libraries(${executable_name} ${OpenCV_LIBS}
                                              ${dlib}
+                                             ${Boost_LIBRARIES}
                                              FaceUtils_LIB)
 endforeach(source_file ${APP_SOURCES})
