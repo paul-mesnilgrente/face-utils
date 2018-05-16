@@ -16,7 +16,8 @@ set(LIB_HEADERS lib/face_detector.hpp
                 lib/face_aligner.hpp)
 add_library(FaceUtils_LIB ${LIB_SOURCES} ${LIB_HEADERS})
 
-set(APP_SOURCES src/face_detection.cpp)
+set(APP_SOURCES src/face_detection.cpp
+                src/main.cpp)
 foreach(source_file ${APP_SOURCES})
     get_filename_component(executable_name ${source_file} NAME_WE)
     add_executable(${executable_name} ${source_file})

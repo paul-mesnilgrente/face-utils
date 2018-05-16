@@ -10,7 +10,7 @@ detected_faces face_detector::post_process(const cv::Mat& image,
                                            float min_confidence)
 {
     detected_faces res;
-    res.faces_bounds = Eigen::MatrixXi::Constant(outs.total(), 4, 0);
+    res.faces_bounds = Eigen::MatrixXi::Constant(outs.total(), 4, -1);
     res.confidences = Eigen::VectorXf::Constant(outs.total(), 0.f);
     int width = image.cols, height = image.rows;
 
@@ -18,8 +18,7 @@ detected_faces face_detector::post_process(const cv::Mat& image,
     // detections and every detection is a vector of values
     // [batchId, classId, confidence, left, top, right, bottom]
     float* data = (float*) outs.data;
-    for (size_t i = 0; i < outs.total(); i += 7)
-    {
+    for (size_t i = 0; i < outs.total(); i += 7) {
         res.confidences(i) = data[i + 2];
         res.faces_bounds(i, 0) = (int) (data[i + 3] * width);
         res.faces_bounds(i, 1) = (int) (data[i + 4] * height);
