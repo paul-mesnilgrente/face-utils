@@ -1,5 +1,5 @@
-import numpy as np
 import argparse
+import numpy as np
 import cv2
 
 
@@ -67,12 +67,24 @@ if __name__ == '__main__':
                     help="path to Caffe pre-trained model")
     ap.add_argument("-c", "--confidence", type=float, default=0.5,
                     help="minimum probability to filter weak detections")
+    ap.add_argument("-i", "--image", type=str,
+                    help="minimum probability to filter weak detections")
     args = vars(ap.parse_args())
 
     detector = face_detector(args['prototxt'], args['model'])
-    cap = cv2.VideoCapture(0)
 
-    while cv2.waitKey(1) != 27:
-        ret, frame = cap.read()
-        (boxes, confidences) = detector.detect(frame)
-        cv2.imshow("Camera", detector.draw(frame, boxes, confidences))
+    if args['image'] is None:
+        cap = cv2.VideoCapture(0)
+
+        while cv2.waitKey(1) != 27:
+            ret, frame = cap.read()
+            (boxes, confidences) = detector.detect(frame)
+            cv2.imshow("Camera", detector.draw(frame, boxes, confidences,
+                       min_confidence=0.1))
+    else:
+        frame = cv2.imread(args['image'])
+        (boxes, confidences) = detector.detect(frame, 0.1)
+        print('{} faces detected'.format(len(boxes)))
+        cv2.namedWindow("Image", cv2.WINDOW_NORMAL)
+        cv2.imshow("Image", detector.draw(frame, boxes, confidences, 0.1))
+        cv2.waitKey()
